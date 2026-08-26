@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🥮 月餅訂購管理</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;600&display=swap');
+  :root {
+    --amber:#B8732A; --amber-lt:#D4943E; --amber-dk:#7A4A14;
+    --cream:#FAF5EC; --cream-dk:#F0E6D0;
+    --brown:#3E2009; --brown-lt:#6B3D18;
+    --red:#C0392B; --green:#2E7D32;
+    --surface:#FFFDF8; --border:#DEC9A0;
+    --text:#2C1A09; --muted:#9A7A56;
+    --shadow:rgba(62,32,9,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans TC',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+  header{
+    background:linear-gradient(135deg,var(--amber-dk) 0%,var(--amber) 60%,var(--amber-lt) 100%);
+    color:var(--cream);padding:14px 18px 11px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 12px var(--shadow);position:sticky;top:0;z-index:100;
+  }
+  .header-left{display:flex;align-items:center;gap:10px;}
+  header h1{font-family:'Noto Serif TC',serif;font-size:1.15rem;font-weight:700;letter-spacing:.05em;}
+  header small{font-size:.7rem;opacity:.8;}
+  .sync-btn{
+    background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+    color:white;padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:600;
+    cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:5px;
+  }
+  .sync-btn:hover{background:rgba(255,255,255,.28);}
+  .sync-btn.loading{opacity:.6;cursor:not-allowed;}
+
+  .layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 56px);}
+  @media(max-width:800px){.layout{grid-template-columns:1fr;}}
+  .panel{padding:16px;border-right:1px solid var(--border);}
+  .panel-right{border-right:none;overflow-y:auto;max-height:calc(100vh - 56px);}
+  .panel-left{overflow-y:auto;max-height:calc(100vh - 56px);}
+  @media(max-width:800px){.panel-left,.panel-right{max-height:none;overflow-y:visible;}}
+
+  .section-title{
+    font-family:'Noto Serif TC',serif;font-size:.78rem;font-weight:700;
+    color:var(--amber-dk);letter-spacing:.12em;margin-bottom:10px;
+    display:flex;align-items:center;gap:6px;
+  }
+
+  /* ── 設定區 ── */
+  .setup-card{
+    background:rgba(184,115,42,.07);border:1px solid var(--border);
+    border-radius:10px;padding:12px 14px;font-size:.76rem;
+    color:var(--brown-lt);margin-bottom:14px;line-height:1.6;
+  }
+  .setup-card strong{color:var(--amber-dk);}
+  .setup-card input{width:100%;margin-top:6px;margin-bottom:6px;}
+  .setup-card button{
+    width:100%;padding:7px;background:var(--cream-dk);
+    border:1.5px solid var(--border);border-radius:6px;
+    cursor:pointer;font-size:.78rem;font-weight:600;color:var(--brown-lt);
+  }
+
+  /* ── 商品選擇 ── */
+  .product-picker{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:14px;box-shadow:0 2px 8px var(--shadow);margin-bottom:12px;
+  }
+  .spec-tabs{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--cream-dk);margin-bottom:12px;}
+  .spec-tab{
+    flex:1;padding:8px 4px;background:none;border:none;border-right:1px solid var(--border);
+    font-family:'Noto Sans TC',sans-serif;font-size:.8rem;font-weight:600;
+    color:var(--muted);cursor:pointer;transition:background .15s,color .15s;text-align:center;line-height:1.3;
+  }
+  .spec-tab:last-child{border-right:none;}
+  .spec-tab.active{background:var(--surface);color:var(--amber-dk);}
+
+  .picker-label{font-size:.76rem;font-weight:600;color:var(--brown-lt);margin-bottom:6px;letter-spacing:.04em;}
+  .flavor-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;}
+  .flavor-chip{
+    padding:8px 4px;border:1.5px solid var(--border);border-radius:8px;
+    background:white;font-size:.8rem;font-weight:500;color:var(--brown-lt);
+    cursor:pointer;text-align:center;transition:all .15s;
+  }
+  .flavor-chip:hover{border-color:var(--amber);color:var(--amber-dk);}
+  .flavor-chip.selected{background:var(--amber);border-color:var(--amber);color:white;font-weight:700;}
+  .flavor-chip.disabled{opacity:.35;cursor:not-allowed;}
+  .flavor-note{font-size:.72rem;color:var(--muted);margin-bottom:8px;min-height:16px;}
+  .mix-option{
+    margin-top:4px;padding:8px 12px;border:1.5px dashed var(--border);border-radius:8px;
+    background:rgba(250,245,236,.7);cursor:pointer;transition:all .15s;
+    display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--brown-lt);font-weight:500;
+  }
+  .mix-option:hover{border-color:var(--amber);}
+  .mix-option.selected{border-color:var(--amber);background:rgba(184,115,42,.07);color:var(--amber-dk);}
+  .mix-option input[type=radio]{accent-color:var(--amber);}
+  .add-btn{
+    width:100%;padding:10px;margin-top:10px;
+    background:linear-gradient(135deg,var(--amber) 0%,var(--amber-lt) 100%);
+    color:white;border:none;border-radius:8px;
+    font-family:'Noto Sans TC',sans-serif;font-size:.88rem;font-weight:700;
+    cursor:pointer;box-shadow:0 2px 8px rgba(184,115,42,.3);
+    transition:opacity .2s,transform .1s;letter-spacing:.06em;
+  }
+  .add-btn:active{transform:scale(.97);}
+  .add-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ── 購物車 ── */
+  .cart-area{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;overflow:hidden;box-shadow:0 2px 8px var(--shadow);margin-bottom:12px;
+  }
+  .cart-empty{padding:18px;text-align:center;color:var(--muted);font-size:.82rem;}
+  .cart-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--cream-dk);}
+  .cart-item:last-child{border-bottom:none;}
+  .cart-item-info{flex:1;}
+  .cart-item-name{font-size:.86rem;font-weight:700;color:var(--brown);margin-bottom:2px;}
+  .cart-item-flavor{font-size:.74rem;color:var(--muted);}
+  .cart-item-price{font-size:.86rem;font-weight:700;color:var(--amber-dk);white-space:nowrap;}
+  .cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:0 2px;transition:color .15s;align-self:flex-start;margin-top:1px;}
+  .cart-item-remove:hover{color:var(--red);}
+  .cart-total{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--cream-dk);font-size:.88rem;font-weight:700;color:var(--amber-dk);border-top:1.5px solid var(--border);}
+
+  /* ── 訂購人資訊 ── */
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 2px 8px var(--shadow);margin-bottom:12px;}
+  .field{margin-bottom:10px;}
+  label{display:block;font-size:.74rem;font-weight:600;color:var(--brown-lt);margin-bottom:4px;letter-spacing:.04em;}
+  label .req{color:var(--amber);margin-left:2px;}
+  input[type=text],input[type=date],select,textarea{
+    width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+    background:var(--cream);font-family:'Noto Sans TC',sans-serif;font-size:.86rem;color:var(--text);
+    transition:border-color .2s,box-shadow .2s;outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(184,115,42,.15);}
+  textarea{resize:vertical;min-height:52px;}
+
+  .submit-row{display:flex;gap:8px;margin-bottom:20px;}
+  .btn{flex:1;padding:10px 0;border:none;border-radius:8px;font-family:'Noto Sans TC',sans-serif;font-size:.86rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;letter-spacing:.04em;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:linear-gradient(135deg,var(--amber) 0%,var(--amber-lt) 100%);color:white;box-shadow:0 2px 8px rgba(184,115,42,.35);}
+  .btn-secondary{background:var(--cream-dk);color:var(--brown-lt);border:1.5px solid var(--border);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ── Right panel ── */
+  .tab-bar{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--cream-dk);margin-bottom:14px;}
+  .tab{flex:1;padding:9px 4px;background:none;border:none;border-right:1px solid var(--border);font-family:'Noto Sans TC',sans-serif;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;}
+  .tab:last-child{border-right:none;}
+  .tab.active{background:var(--surface);color:var(--amber-dk);}
+
+  /* ── 訂單卡 ── */
+  .order-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px var(--shadow);}
+  .order-card:hover{border-color:var(--amber);}
+  .order-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;gap:8px;}
+  .order-name{font-size:.92rem;font-weight:700;color:var(--brown);}
+  .order-date{font-size:.73rem;color:var(--muted);white-space:nowrap;}
+  .order-items{font-size:.78rem;color:var(--brown-lt);line-height:1.7;}
+  .order-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--cream-dk);}
+  .order-total{font-size:.86rem;font-weight:700;color:var(--amber-dk);}
+  .badges{display:flex;gap:4px;flex-wrap:wrap;}
+  .badge{font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:20px;}
+  .badge-paid{background:rgba(46,125,50,.12);color:var(--green);}
+  .badge-unpaid{background:rgba(192,57,43,.1);color:var(--red);}
+  .badge-shipped{background:rgba(184,115,42,.12);color:var(--amber-dk);}
+  .badge-pending{background:var(--cream-dk);color:var(--muted);}
+  .order-actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+  .act-btn{font-size:.7rem;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--brown-lt);cursor:pointer;font-weight:600;transition:all .15s;}
+  .act-btn:hover{border-color:var(--amber);color:var(--amber-dk);}
+  .act-btn.danger:hover{border-color:var(--red);color:var(--red);}
+  .act-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ── 統計 ── */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px var(--shadow);}
+  .stat-label{font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.05em;}
+  .stat-value{font-size:1.5rem;font-weight:700;color:var(--amber-dk);font-family:'Noto Serif TC',serif;}
+  .stat-sub{font-size:.72rem;color:var(--brown-lt);}
+  .flavor-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px var(--shadow);}
+  .flavor-stat-title{font-size:.78rem;font-weight:700;color:var(--brown);margin-bottom:8px;}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .bar-label{font-size:.73rem;color:var(--brown-lt);width:70px;flex-shrink:0;}
+  .bar-track{flex:1;height:9px;background:var(--cream-dk);border-radius:5px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--amber) 0%,var(--amber-lt) 100%);transition:width .4s ease;}
+  .bar-count{font-size:.73rem;font-weight:700;color:var(--amber-dk);min-width:26px;text-align:right;}
+
+  /* ── 頂部進度條 ── */
+  .top-bar{
+    position:fixed;top:0;left:0;width:0%;height:3px;
+    background:linear-gradient(90deg,var(--amber),var(--amber-lt));
+    z-index:300;transition:width .4s ease;
+  }
+
+  .empty-state{text-align:center;padding:36px 20px;color:var(--muted);}
+  .empty-state .icon{font-size:2.6rem;margin-bottom:8px;}
+  .empty-state p{font-size:.82rem;}
+
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--brown);color:var(--cream);padding:10px 20px;border-radius:24px;
+    font-size:.82rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.25);
+    transition:transform .3s ease;z-index:999;white-space:nowrap;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  #toast.error{background:var(--red);}
+
+  .search-bar{margin-bottom:12px;}
+  .search-bar input{
+    width:100%;padding:8px 14px;border:1.5px solid var(--border);border-radius:20px;
+    background:var(--surface);font-size:.84rem;color:var(--text);outline:none;
+    font-family:'Noto Sans TC',sans-serif;
+  }
+  .search-bar input:focus{border-color:var(--amber);}
+</style>
+</head>
+<body>
+
+<div class="top-bar" id="topBar"></div>
+<header>
+  <div class="header-left">
+    <span style="font-size:1.7rem">🥮</span>
+    <div>
+      <h1>月餅訂購管理</h1>
+      <small id="headerDate"></small>
+    </div>
+  </div>
+  <button class="sync-btn" onclick="syncOrders()" id="syncBtn">🔄 同步</button>
+</header>
+
+<div class="layout">
+<!-- ════ LEFT ════ -->
+<div class="panel panel-left">
+
+  <!-- 設定 -->
+  <div class="setup-card" id="setupCard">
+    <strong>⚙️ 尚未設定 Apps Script 網址</strong><br>
+    設定後訂單資料將從 Google 試算表讀取。<br>
+    <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <button onclick="saveScriptUrl()">儲存設定</button>
+  </div>
+
+  <!-- ① 商品 -->
+  <div class="section-title">① 選商品規格</div>
+  <div class="product-picker">
+    <div class="spec-tabs">
+      <button class="spec-tab active" onclick="selectSpec('6')" id="stab-6">🌕 6入<br><small>$450</small></button>
+      <button class="spec-tab" onclick="selectSpec('8')" id="stab-8">🌕 8入<br><small>$580</small></button>
+      <button class="spec-tab" onclick="selectSpec('14')" id="stab-14">🍍 鳳梨酥14入<br><small>$600</small></button>
+    </div>
+    <div id="flavorSection">
+      <div class="picker-label">選擇口味（1種整盒同味，2種各半）</div>
+      <div class="flavor-grid" id="flavorGrid"></div>
+      <div class="flavor-note" id="flavorNote">請選口味</div>
+      <div class="mix-option" id="mixOption" onclick="toggleMix()">
+        <input type="radio" id="mixRadio" name="flavorMode">
+        <div>
+          <div style="font-weight:700;color:var(--brown)">🎁 綜合搭配</div>
+          <div style="font-size:.7rem;color:var(--muted)">由我們幫你搭配口味</div>
+        </div>
+      </div>
+    </div>
+    <div id="pineSection" style="display:none">
+      <div class="picker-label" style="color:var(--amber-dk)">🍍 金鑽土鳳梨酥 × 14 顆</div>
+      <div style="font-size:.78rem;color:var(--muted)">口味固定，無需選擇。</div>
+    </div>
+    <button class="add-btn" id="addBtn" onclick="addToCart()" disabled>＋ 加入訂單</button>
+  </div>
+
+  <!-- ② 購物車 -->
+  <div class="section-title">② 訂單明細</div>
+  <div class="cart-area">
+    <div class="cart-empty" id="cartEmpty">尚未加入商品</div>
+    <div id="cartList"></div>
+    <div class="cart-total" id="cartTotal" style="display:none">
+      <span>合計</span><span id="cartTotalAmt">$0</span>
+    </div>
+  </div>
+
+  <!-- ③ 訂購人 -->
+  <div class="section-title">③ 訂購人資訊</div>
+  <div class="info-card">
+    <div class="field">
+      <label>訂購人 <span class="req">*</span></label>
+      <input type="text" id="buyerName" placeholder="姓名 / 暱稱">
+    </div>
+    <div class="field">
+      <label>取貨日期 <span class="req">*</span></label>
+      <input type="date" id="pickupDate">
+    </div>
+    <div class="field">
+      <label>付款狀態</label>
+      <select id="payStatus">
+        <option value="unpaid">❌ 未付款</option>
+        <option value="paid">✅ 已付款</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>備註</label>
+      <textarea id="note" placeholder="例：宅配地址、特別交代…"></textarea>
+    </div>
+  </div>
+
+  <div class="submit-row">
+    <button class="btn btn-secondary" onclick="clearAll()">清除重填</button>
+    <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">✓ 儲存訂單</button>
+  </div>
+
+</div>
+
+<!-- ════ RIGHT ════ -->
+<div class="panel panel-right">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('orders')" id="tab-orders">📋 所有訂單</button>
+    <button class="tab" onclick="switchTab('today')" id="tab-today">🚚 今日出貨</button>
+    <button class="tab" onclick="switchTab('stats')" id="tab-stats">📊 統計</button>
+  </div>
+  <div id="pane-orders">
+    <div class="search-bar"><input type="text" id="searchInput" placeholder="🔍 搜尋訂購人…" oninput="renderOrders()"></div>
+    <div id="orderList"></div>
+  </div>
+  <div id="pane-today" style="display:none"></div>
+  <div id="pane-stats" style="display:none"></div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══ 常數 ══
+const FLAVORS = ['蛋黃酥','月娘酥','綠豆碰','抹茶酥','芋頭酥','鳳梨酥'];
+
+// ══ 全域狀態 ══
+let orders = [];          // 從 Sheet 載入
+let cart = [];
+let currentSpec = '6';
+let selectedFlavors = [];
+let isMix = false;
+let currentTab = 'orders';
+let isSyncing = false;
+
+// ══ Apps Script URL ══
+function getUrl(){ return 'https://script.google.com/macros/s/AKfycbys1iQ5DbHvHBz6Mdk1MrA38YjOCDBqQ_-I9LePXoBpQy5I-ghlyvitnmvJmUb_iaWDLA/exec'; }
+function saveScriptUrl(){
+  const u = document.getElementById('scriptUrl').value.trim();
+  if(!u){ alert('請輸入 Apps Script 網址'); return; }
+  localStorage.setItem('mc_scriptUrl', u);
+  renderSetupCard();
+  syncOrders();
+}
+function renderSetupCard(){
+  const url = getUrl();
+  const card = document.getElementById('setupCard');
+  card.innerHTML = `<strong>✅ 已連接 Google 試算表</strong>`;
+}
+function resetUrl(){
+  localStorage.removeItem('mc_scriptUrl');
+  renderSetupCard();
+}
+
+// ══ 同步訂單（從 Sheet 讀） ══
+async function syncOrders(){
+  const url = getUrl();
+  if(!url){ showToast('❗ 請先設定 Apps Script 網址', true); return; }
+  if(isSyncing) return;
+  isSyncing = true;
+  setTopBar(30);
+  const btn = document.getElementById('syncBtn');
+  btn.classList.add('loading'); btn.textContent = '⏳ 同步中…';
+
+  // 8秒後自動關 overlay，讓使用者繼續操作
+  const overlayTimer = setTimeout(()=>{
+    setTopBar(0);
+    showToast('⚠️ 同步較慢，可繼續使用，稍後再按同步', true);
+  }, 8000);
+
+  try {
+    const controller = new AbortController();
+    const abortTimer = setTimeout(()=>controller.abort(), 15000);
+    const res = await fetch(url, { method:'GET', signal: controller.signal });
+    clearTimeout(abortTimer);
+    const data = await res.json();
+    if(data.success){
+      orders = data.orders || [];
+      renderCurrentTab();
+      setTopBar(100);
+      showToast(`✅ 已同步 ${orders.length} 筆訂單`);
+    } else {
+      showToast('❗ 同步失敗：' + (data.error||'未知錯誤'), true);
+    }
+  } catch(e) {
+    if(e.name === 'AbortError'){
+      showToast('⚠️ 同步逾時，請稍後再按同步', true);
+    } else {
+      showToast('❗ 連線失敗，請確認網址設定', true);
+    }
+  }
+  clearTimeout(overlayTimer);
+  isSyncing = false;
+  btn.classList.remove('loading'); btn.textContent = '🔄 同步';
+  setTopBar(0);
+}
+
+// ══ 推送到 Sheet ══
+async function pushToSheet(payload){
+  const url = getUrl();
+  if(!url) return false;
+  try {
+    const form = new FormData();
+    form.append('payload', JSON.stringify(payload));
+    await fetch(url, { method:'POST', mode:'no-cors', body: form });
+    return true;
+  } catch(e) {
+    console.warn('push failed', e);
+    return false;
+  }
+}
+
+// ══ 規格切換 ══
+function selectSpec(s){
+  currentSpec = s;
+  ['6','8','14'].forEach(k => document.getElementById(`stab-${k}`).classList.toggle('active', k===s));
+  document.getElementById('flavorSection').style.display = s==='14' ? 'none' : 'block';
+  document.getElementById('pineSection').style.display   = s==='14' ? 'block' : 'none';
+  selectedFlavors = []; isMix = false;
+  renderFlavorGrid();
+}
+
+// ══ 口味 ══
+function renderFlavorGrid(){
+  const grid = document.getElementById('flavorGrid');
+  grid.innerHTML = FLAVORS.map(f => {
+    const sel = selectedFlavors.includes(f);
+    const dis = !sel && selectedFlavors.length >= 2;
+    return `<button class="flavor-chip ${sel?'selected':''} ${dis&&!isMix?'disabled':''}" onclick="toggleFlavor('${f}')">${f}</button>`;
+  }).join('');
+  const note = document.getElementById('flavorNote');
+  if(isMix) note.textContent = '✅ 已選擇綜合搭配';
+  else if(selectedFlavors.length===1) note.textContent = `✅ 整盒 ${selectedFlavors[0]}（可再選第2種改各半）`;
+  else if(selectedFlavors.length===2) note.textContent = `✅ ${selectedFlavors[0]} ＆ ${selectedFlavors[1]}，各半`;
+  else note.textContent = '請選口味（1種 = 整盒，2種 = 各半）';
+  document.getElementById('mixOption').classList.toggle('selected', isMix);
+  document.getElementById('mixRadio').checked = isMix;
+  document.getElementById('addBtn').disabled = !(currentSpec==='14' || isMix || selectedFlavors.length>=1);
+}
+function toggleFlavor(f){
+  if(isMix){ isMix=false; }
+  if(selectedFlavors.includes(f)) selectedFlavors = selectedFlavors.filter(x=>x!==f);
+  else if(selectedFlavors.length<2) selectedFlavors.push(f);
+  renderFlavorGrid();
+}
+function toggleMix(){ isMix=!isMix; if(isMix) selectedFlavors=[]; renderFlavorGrid(); }
+
+// ══ 購物車 ══
+function addToCart(){
+  const SPECS = {'6':{name:'月餅 6入',price:450},'8':{name:'月餅 8入',price:580},'14':{name:'鳳梨酥 14入',price:600}};
+  const spec = SPECS[currentSpec];
+  cart.push({
+    id: Date.now()+Math.random(),
+    spec: currentSpec, name: spec.name, price: spec.price,
+    mix: isMix,
+    flavor1: selectedFlavors[0]||null,
+    flavor2: selectedFlavors[1]||null,
+  });
+  selectedFlavors=[]; isMix=false;
+  renderFlavorGrid(); renderCart();
+  showToast('✅ 已加入訂單');
+}
+function renderCart(){
+  const list = document.getElementById('cartList');
+  const empty = document.getElementById('cartEmpty');
+  const totalRow = document.getElementById('cartTotal');
+  if(!cart.length){ empty.style.display='block'; list.innerHTML=''; totalRow.style.display='none'; return; }
+  empty.style.display='none';
+  list.innerHTML = cart.map(it => {
+    const flStr = flavorStr(it);
+    return `<div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${it.name}</div>
+        <div class="cart-item-flavor">${flStr}</div>
+      </div>
+      <div class="cart-item-price">$${it.price.toLocaleString()}</div>
+      <button class="cart-item-remove" onclick="removeCart('${it.id}')">✕</button>
+    </div>`;
+  }).join('');
+  const total = cart.reduce((s,i)=>s+i.price,0);
+  document.getElementById('cartTotalAmt').textContent=`$${total.toLocaleString()}`;
+  totalRow.style.display='flex';
+}
+function removeCart(id){ cart=cart.filter(i=>String(i.id)!==String(id)); renderCart(); }
+
+// ══ 儲存訂單 ══
+async function submitOrder(){
+  const name = document.getElementById('buyerName').value.trim();
+  const date = document.getElementById('pickupDate').value;
+  if(!name){ alert('請填寫訂購人姓名'); return; }
+  if(!date){ alert('請選擇取貨日期'); return; }
+  if(!cart.length){ alert('請至少加入一項商品'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='⏳ 儲存中…';
+
+  const order = {
+    action: 'add',
+    id: Date.now(),
+    name, date,
+    items: JSON.parse(JSON.stringify(cart)),
+    total: cart.reduce((s,i)=>s+i.price,0),
+    pay: document.getElementById('payStatus').value,
+    shipped: false,
+    note: document.getElementById('note').value.trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  await pushToSheet(order);
+  orders.unshift(order); // 樂觀更新
+  showToast('✅ 訂單已儲存！');
+  clearAll();
+  renderCurrentTab();
+  btn.disabled=false; btn.textContent='✓ 儲存訂單';
+
+  // 背景重新同步確認
+  setTimeout(syncOrders, 1500);
+}
+
+// ══ 清除 ══
+function clearAll(){
+  cart=[]; selectedFlavors=[]; isMix=false;
+  renderCart(); renderFlavorGrid();
+  document.getElementById('buyerName').value='';
+  document.getElementById('pickupDate').value=todayStr();
+  document.getElementById('payStatus').value='unpaid';
+  document.getElementById('note').value='';
+}
+
+// ══ 操作訂單 ══
+async function togglePay(id){
+  const o = orders.find(x=>String(x.id)===String(id));
+  if(!o) return;
+  o.pay = o.pay==='paid' ? 'unpaid' : 'paid';
+  renderCurrentTab();
+  await pushToSheet({ action:'update', id, pay: o.pay });
+  setTimeout(syncOrders, 1000);
+}
+async function toggleShip(id){
+  const o = orders.find(x=>String(x.id)===String(id));
+  if(!o) return;
+  o.shipped = !o.shipped;
+  renderCurrentTab();
+  await pushToSheet({ action:'update', id, shipped: o.shipped });
+  setTimeout(syncOrders, 1000);
+}
+async function deleteOrder(id){
+  if(!confirm('確定刪除這筆訂單？\n（試算表會保留紀錄，僅標記刪除）')) return;
+  orders = orders.filter(o=>String(o.id)!==String(id));
+  renderCurrentTab();
+  await pushToSheet({ action:'delete', id });
+  setTimeout(syncOrders, 1000);
+}
+
+// ══ 工具 ══
+function flavorStr(it){
+  if(it.spec==='14') return '金鑽土鳳梨酥';
+  if(it.mix) return '🎁 綜合搭配';
+  if(it.flavor1 && it.flavor2) return `${it.flavor1} ＆ ${it.flavor2}（各半）`;
+  return `${it.flavor1||'?'}（整盒）`;
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+// ══ 訂單卡 HTML ══
+function orderCardHTML(o){
+  const lines = o.items.map(it=>`${it.name}（${flavorStr(it)}）`).join('<br>');
+  const payB = o.pay==='paid'
+    ? '<span class="badge badge-paid">✅ 已付款</span>'
+    : '<span class="badge badge-unpaid">❌ 未付款</span>';
+  const shipB = o.shipped
+    ? '<span class="badge badge-shipped">🚚 已出貨</span>'
+    : '<span class="badge badge-pending">⏳ 待出貨</span>';
+  return `<div class="order-card">
+    <div class="order-header">
+      <span class="order-name">👤 ${o.name}</span>
+      <span class="order-date">📅 ${o.date}</span>
+    </div>
+    <div class="order-items">${lines}</div>
+    ${o.note?`<div style="font-size:.72rem;color:var(--muted);margin-top:3px">💬 ${o.note}</div>`:''}
+    <div class="order-footer">
+      <span class="order-total">$${Number(o.total).toLocaleString()}</span>
+      <div class="badges">${payB}${shipB}</div>
+    </div>
+    <div class="order-actions">
+      <button class="act-btn" onclick="togglePay('${o.id}')">${o.pay==='paid'?'標記未付':'標記已付'}</button>
+      <button class="act-btn" onclick="toggleShip('${o.id}')">${o.shipped?'標記未出貨':'標記已出貨'}</button>
+      <button class="act-btn danger" onclick="deleteOrder('${o.id}')">🗑 刪除</button>
+    </div>
+  </div>`;
+}
+
+// ══ 分頁渲染 ══
+function switchTab(t){
+  currentTab=t;
+  ['orders','today','stats'].forEach(k=>{
+    document.getElementById(`pane-${k}`).style.display=k===t?'block':'none';
+    document.getElementById(`tab-${k}`).classList.toggle('active',k===t);
+  });
+  renderCurrentTab();
+}
+function renderCurrentTab(){
+  if(currentTab==='orders') renderOrders();
+  else if(currentTab==='today') renderToday();
+  else renderStats();
+}
+
+function renderOrders(){
+  const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  let list = [...orders].sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+  if(q) list = list.filter(o=>o.name.toLowerCase().includes(q));
+  const el = document.getElementById('orderList');
+  if(!list.length){ el.innerHTML=`<div class="empty-state"><div class="icon">🥮</div><p>${q?'查無結果':'還沒有訂單'}</p></div>`; return; }
+  el.innerHTML = list.map(orderCardHTML).join('');
+}
+
+function renderToday(){
+  const today = todayStr();
+  const list = orders.filter(o=>o.date===today);
+  const el = document.getElementById('pane-today');
+  el.innerHTML=`<div style="margin-bottom:10px;font-size:.78rem;color:var(--amber-dk);font-weight:700">📅 ${today} — ${list.length} 筆出貨</div>`;
+  if(!list.length){ el.innerHTML+=`<div class="empty-state"><div class="icon">✅</div><p>今日沒有待出貨</p></div>`; return; }
+  el.innerHTML += list.map(orderCardHTML).join('');
+}
+
+function renderStats(){
+  const el = document.getElementById('pane-stats');
+  if(!orders.length){ el.innerHTML=`<div class="empty-state"><div class="icon">📊</div><p>尚無資料</p></div>`; return; }
+
+  let totalAmt=0,unpaidAmt=0,box6=0,box8=0,box14=0;
+  const fc={};
+  FLAVORS.forEach(f=>fc[f]=0); fc['mix']=0;
+
+  orders.forEach(o=>{
+    totalAmt+=Number(o.total);
+    if(o.pay!=='paid') unpaidAmt+=Number(o.total);
+    o.items.forEach(it=>{
+      if(it.spec==='6') box6++;
+      if(it.spec==='8') box8++;
+      if(it.spec==='14') box14++;
+      if(it.mix) fc['mix']++;
+      else{ if(it.flavor1) fc[it.flavor1]=(fc[it.flavor1]||0)+1; if(it.flavor2) fc[it.flavor2]=(fc[it.flavor2]||0)+1; }
+    });
+  });
+
+  const maxF = Math.max(...Object.values(fc),1);
+  let html=`<div class="stat-grid">
+    <div class="stat-box"><div class="stat-label">總訂單數</div><div class="stat-value">${orders.length}</div><div class="stat-sub">筆</div></div>
+    <div class="stat-box"><div class="stat-label">總金額</div><div class="stat-value">$${(totalAmt/1000).toFixed(1)}k</div><div class="stat-sub" style="color:var(--red)">未收 $${unpaidAmt.toLocaleString()}</div></div>
+    <div class="stat-box"><div class="stat-label">月餅盒數</div><div class="stat-value">${box6+box8}</div><div class="stat-sub">6入×${box6}／8入×${box8}</div></div>
+    <div class="stat-box"><div class="stat-label">鳳梨酥盒數</div><div class="stat-value">${box14}</div><div class="stat-sub">已出 ${orders.filter(o=>o.shipped).length} 筆</div></div>
+  </div>`;
+
+  html+=`<div class="flavor-stat"><div class="flavor-stat-title">🍥 月餅口味需求</div>`;
+  FLAVORS.forEach(f=>{
+    const cnt=fc[f]||0;
+    html+=`<div class="bar-row"><span class="bar-label">${f}</span><div class="bar-track"><div class="bar-fill" style="width:${cnt/maxF*100}%"></div></div><span class="bar-count">${cnt}</span></div>`;
+  });
+  if(fc['mix']>0) html+=`<div class="bar-row"><span class="bar-label">🎁 綜合</span><div class="bar-track"><div class="bar-fill" style="width:${fc['mix']/maxF*100}%;opacity:.5"></div></div><span class="bar-count">${fc['mix']}</span></div>`;
+  html+=`</div>`;
+
+  const byDate={};
+  orders.forEach(o=>{byDate[o.date]=(byDate[o.date]||0)+1;});
+  const maxD=Math.max(...Object.values(byDate),1);
+  html+=`<div class="flavor-stat"><div class="flavor-stat-title">📅 各日出貨筆數</div>`;
+  Object.keys(byDate).sort().forEach(d=>{
+    const cnt=byDate[d];
+    html+=`<div class="bar-row"><span class="bar-label" style="width:90px">${d}</span><div class="bar-track"><div class="bar-fill" style="width:${cnt/maxD*100}%"></div></div><span class="bar-count">${cnt}</span></div>`;
+  });
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+
+// ══ 頂部進度條 ══
+function setTopBar(pct){
+  const bar = document.getElementById('topBar');
+  bar.style.width = pct + '%';
+  if(pct >= 100) setTimeout(()=>{ bar.style.width='0%'; }, 600);
+}
+
+// ══ Toast ══
+function showToast(msg, isErr=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className = isErr ? 'error' : '';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ══ Init ══
+document.getElementById('headerDate').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+document.getElementById('pickupDate').value=todayStr();
+renderSetupCard();
+renderFlavorGrid();
+
+// 有 URL 就自動同步，否則隱藏 overlay
+if(getUrl()){ syncOrders(); }
+else { setTopBar(0); }
+</script>
+</body>
+</html>
