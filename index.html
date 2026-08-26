@@ -262,7 +262,14 @@
       <div class="picker-label" style="color:var(--amber-dk)">🍍 金鑽土鳳梨酥 × 14 顆</div>
       <div style="font-size:.78rem;color:var(--muted)">口味固定，無需選擇。</div>
     </div>
-    <button class="add-btn" id="addBtn" onclick="addToCart()" disabled>＋ 加入訂單</button>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+      <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;background:var(--cream);overflow:hidden;flex-shrink:0">
+        <button onclick="changeQty(-1)" style="width:32px;height:40px;background:none;border:none;font-size:1.1rem;font-weight:700;color:var(--amber);cursor:pointer">−</button>
+        <input type="number" id="itemQty" value="1" min="1" max="99" style="width:36px;height:40px;border:none;background:none;text-align:center;font-size:.95rem;font-weight:700;color:var(--brown);padding:0;outline:none">
+        <button onclick="changeQty(1)" style="width:32px;height:40px;background:none;border:none;font-size:1.1rem;font-weight:700;color:var(--amber);cursor:pointer">＋</button>
+      </div>
+      <button class="add-btn" id="addBtn" onclick="addToCart()" disabled style="margin-top:0;flex:1">加入訂單</button>
+    </div>
   </div>
 
   <!-- ② 購物車 -->
@@ -421,6 +428,7 @@ function selectSpec(s){
   document.getElementById('flavorSection').style.display = s==='14' ? 'none' : 'block';
   document.getElementById('pineSection').style.display   = s==='14' ? 'block' : 'none';
   selectedFlavors = []; isMix = false;
+  document.getElementById('itemQty').value = 1;
   renderFlavorGrid();
 }
 
@@ -448,21 +456,29 @@ function toggleFlavor(f){
   renderFlavorGrid();
 }
 function toggleMix(){ isMix=!isMix; if(isMix) selectedFlavors=[]; renderFlavorGrid(); }
+function changeQty(delta){
+  const inp = document.getElementById('itemQty');
+  inp.value = Math.max(1, Math.min(99, parseInt(inp.value||1) + delta));
+}
 
 // ══ 購物車 ══
 function addToCart(){
   const SPECS = {'6':{name:'月餅 6入',price:450},'8':{name:'月餅 8入',price:580},'14':{name:'鳳梨酥 14入',price:600}};
   const spec = SPECS[currentSpec];
-  cart.push({
-    id: Date.now()+Math.random(),
-    spec: currentSpec, name: spec.name, price: spec.price,
-    mix: isMix,
-    flavor1: selectedFlavors[0]||null,
-    flavor2: selectedFlavors[1]||null,
-  });
+  const qty = Math.max(1, parseInt(document.getElementById('itemQty').value||1));
+  for(let i=0; i<qty; i++){
+    cart.push({
+      id: Date.now()+Math.random(),
+      spec: currentSpec, name: spec.name, price: spec.price,
+      mix: isMix,
+      flavor1: selectedFlavors[0]||null,
+      flavor2: selectedFlavors[1]||null,
+    });
+  }
+  document.getElementById('itemQty').value = 1;
   selectedFlavors=[]; isMix=false;
   renderFlavorGrid(); renderCart();
-  showToast('✅ 已加入訂單');
+  showToast(`✅ 已加入 ${qty} 盒`);
 }
 function renderCart(){
   const list = document.getElementById('cartList');
