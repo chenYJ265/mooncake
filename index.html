@@ -345,7 +345,7 @@ let currentTab = 'orders';
 let isSyncing = false;
 
 // ══ Apps Script URL ══
-function getUrl(){ return 'https://script.google.com/macros/s/AKfycbys1iQ5DbHvHBz6Mdk1MrA38YjOCDBqQ_-I9LePXoBpQy5I-ghlyvitnmvJmUb_iaWDLA/exec'; }
+function getUrl(){ return 'https://script.google.com/macros/s/AKfycbyuCPj1VUwstus4l1qL_dvDW-Su7wSOULWUEPDi4W5Oxr7vwbgmfsrDiD9OoTX_QZcjXw/exec'; }
 function saveScriptUrl(){
   const u = document.getElementById('scriptUrl').value.trim();
   if(!u){ alert('請輸入 Apps Script 網址'); return; }
@@ -462,17 +462,26 @@ function changeQty(delta){
 }
 
 // ══ 購物車 ══
+function cartKey(spec, mix, f1, f2){
+  return `${spec}|${mix?'mix':`${f1||''}+${f2||''}`}`;
+}
 function addToCart(){
   const SPECS = {'6':{name:'月餅 6入',price:450},'8':{name:'月餅 8入',price:580},'14':{name:'鳳梨酥 14入',price:600}};
   const spec = SPECS[currentSpec];
   const qty = Math.max(1, parseInt(document.getElementById('itemQty').value||1));
-  for(let i=0; i<qty; i++){
+  const f1 = selectedFlavors[0]||null;
+  const f2 = selectedFlavors[1]||null;
+  const key = cartKey(currentSpec, isMix, f1, f2);
+  const existing = cart.find(i=>i.key===key);
+  if(existing){
+    existing.qty += qty;
+  } else {
     cart.push({
       id: Date.now()+Math.random(),
+      key,
       spec: currentSpec, name: spec.name, price: spec.price,
-      mix: isMix,
-      flavor1: selectedFlavors[0]||null,
-      flavor2: selectedFlavors[1]||null,
+      mix: isMix, flavor1: f1, flavor2: f2,
+      qty,
     });
   }
   document.getElementById('itemQty').value = 1;
@@ -488,16 +497,20 @@ function renderCart(){
   empty.style.display='none';
   list.innerHTML = cart.map(it => {
     const flStr = flavorStr(it);
+    const subtotal = it.price * it.qty;
     return `<div class="cart-item">
       <div class="cart-item-info">
-        <div class="cart-item-name">${it.name}</div>
+        <div class="cart-item-name">${it.name} <span style="color:var(--amber);font-size:.8rem">×${it.qty}</span></div>
         <div class="cart-item-flavor">${flStr}</div>
       </div>
-      <div class="cart-item-price">$${it.price.toLocaleString()}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+        <div class="cart-item-price">$${subtotal.toLocaleString()}</div>
+        <div style="font-size:.7rem;color:var(--muted)">$${it.price}×${it.qty}</div>
+      </div>
       <button class="cart-item-remove" onclick="removeCart('${it.id}')">✕</button>
     </div>`;
   }).join('');
-  const total = cart.reduce((s,i)=>s+i.price,0);
+  const total = cart.reduce((s,i)=>s+(i.price*i.qty),0);
   document.getElementById('cartTotalAmt').textContent=`$${total.toLocaleString()}`;
   totalRow.style.display='flex';
 }
@@ -519,7 +532,7 @@ async function submitOrder(){
     id: Date.now(),
     name, date,
     items: JSON.parse(JSON.stringify(cart)),
-    total: cart.reduce((s,i)=>s+i.price,0),
+    total: cart.reduce((s,i)=>s+(i.price*i.qty),0),
     pay: document.getElementById('payStatus').value,
     shipped: false,
     note: document.getElementById('note').value.trim(),
@@ -583,7 +596,7 @@ function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 // ══ 訂單卡 HTML ══
 function orderCardHTML(o){
-  const lines = o.items.map(it=>`${it.name}（${flavorStr(it)}）`).join('<br>');
+  const lines = o.items.map(it=>`${it.name} ×${it.qty||1}（${flavorStr(it)}）`).join('<br>');
   const payB = o.pay==='paid'
     ? '<span class="badge badge-paid">✅ 已付款</span>'
     : '<span class="badge badge-unpaid">❌ 未付款</span>';
@@ -654,21 +667,20 @@ function renderStats(){
     totalAmt+=Number(o.total);
     if(o.pay!=='paid') unpaidAmt+=Number(o.total);
     o.items.forEach(it=>{
-      if(it.spec==='6') box6++;
-      if(it.spec==='8') box8++;
-      if(it.spec==='14') box14++;
+      const q = it.qty||1;
+      if(it.spec==='6') box6+=q;
+      if(it.spec==='8') box8+=q;
+      if(it.spec==='14') box14+=q;
       if(it.spec==='6'||it.spec==='8'){
-        const total = it.spec==='6' ? 6 : 8;
+        const perBox = it.spec==='6' ? 6 : 8;
+        const total = perBox * q;
         if(it.mix){
-          // 綜合：整盒顆數算在 mix
           fc['mix']=(fc['mix']||0)+total;
         } else if(it.flavor1 && it.flavor2){
-          // 兩種口味各半
           const half = total/2;
           fc[it.flavor1]=(fc[it.flavor1]||0)+half;
           fc[it.flavor2]=(fc[it.flavor2]||0)+half;
         } else if(it.flavor1){
-          // 整盒同口味
           fc[it.flavor1]=(fc[it.flavor1]||0)+total;
         }
       }
