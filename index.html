@@ -14,6 +14,7 @@
     --surface:#FFFDF8; --border:#DEC9A0;
     --text:#2C1A09; --muted:#9A7A56;
     --shadow:rgba(62,32,9,.12);
+    --orange:#E67E22;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Noto Sans TC',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
@@ -35,7 +36,7 @@
   .sync-btn:hover{background:rgba(255,255,255,.28);}
   .sync-btn.loading{opacity:.6;cursor:not-allowed;}
 
-  .layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 56px);}
+  .layout{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 56px);}
   @media(max-width:800px){.layout{grid-template-columns:1fr;}}
   .panel{padding:16px;border-right:1px solid var(--border);}
   .panel-right{border-right:none;overflow-y:auto;max-height:calc(100vh - 56px);}
@@ -76,17 +77,36 @@
   .spec-tab:last-child{border-right:none;}
   .spec-tab.active{background:var(--surface);color:var(--amber-dk);}
 
-  .picker-label{font-size:.76rem;font-weight:600;color:var(--brown-lt);margin-bottom:6px;letter-spacing:.04em;}
-  .flavor-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;}
-  .flavor-chip{
-    padding:8px 4px;border:1.5px solid var(--border);border-radius:8px;
-    background:white;font-size:.8rem;font-weight:500;color:var(--brown-lt);
-    cursor:pointer;text-align:center;transition:all .15s;
+  .picker-label{font-size:.76rem;font-weight:600;color:var(--brown-lt);margin-bottom:8px;letter-spacing:.04em;}
+
+  /* ── 口味數量格 ── */
+  .fq-grid{display:flex;flex-direction:column;gap:5px;margin-bottom:8px;}
+  .fq-row{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;
+    background:white;transition:border-color .15s;
   }
-  .flavor-chip:hover{border-color:var(--amber);color:var(--amber-dk);}
-  .flavor-chip.selected{background:var(--amber);border-color:var(--amber);color:white;font-weight:700;}
-  .flavor-chip.disabled{opacity:.35;cursor:not-allowed;}
-  .flavor-note{font-size:.72rem;color:var(--muted);margin-bottom:8px;min-height:16px;}
+  .fq-row:focus-within{border-color:var(--amber);}
+  .fq-name{flex:1;font-size:.82rem;font-weight:600;color:var(--brown-lt);}
+  .fq-note{font-size:.68rem;color:var(--muted);}
+  .fq-stepper{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--cream);}
+  .fq-stepper button{width:28px;height:28px;background:none;border:none;font-size:1rem;font-weight:700;color:var(--amber);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .fq-stepper button:hover{background:var(--cream-dk);}
+  .fq-val{width:30px;text-align:center;font-size:.88rem;font-weight:700;color:var(--brown);}
+
+  /* 容量條 */
+  .capacity-bar-wrap{margin-bottom:8px;}
+  .capacity-header{display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px;}
+  .capacity-label{color:var(--brown-lt);font-weight:600;}
+  .capacity-count{font-weight:700;}
+  .capacity-count.ok{color:var(--green);}
+  .capacity-count.over{color:var(--red);}
+  .capacity-track{height:7px;background:var(--cream-dk);border-radius:5px;overflow:hidden;}
+  .capacity-fill{height:100%;border-radius:5px;transition:width .3s ease,background .3s;}
+  .capacity-fill.ok{background:linear-gradient(90deg,var(--amber),var(--amber-lt));}
+  .capacity-fill.over{background:var(--red);}
+  .capacity-warning{font-size:.7rem;color:var(--red);margin-top:3px;font-weight:600;}
+
   .mix-option{
     margin-top:4px;padding:8px 12px;border:1.5px dashed var(--border);border-radius:8px;
     background:rgba(250,245,236,.7);cursor:pointer;transition:all .15s;
@@ -94,7 +114,8 @@
   }
   .mix-option:hover{border-color:var(--amber);}
   .mix-option.selected{border-color:var(--amber);background:rgba(184,115,42,.07);color:var(--amber-dk);}
-  .mix-option input[type=radio]{accent-color:var(--amber);}
+  .mix-option input[type=checkbox]{accent-color:var(--amber);width:14px;height:14px;}
+
   .add-btn{
     width:100%;padding:10px;margin-top:10px;
     background:linear-gradient(135deg,var(--amber) 0%,var(--amber-lt) 100%);
@@ -175,13 +196,48 @@
   .stat-label{font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.05em;}
   .stat-value{font-size:1.5rem;font-weight:700;color:var(--amber-dk);font-family:'Noto Serif TC',serif;}
   .stat-sub{font-size:.72rem;color:var(--brown-lt);}
-  .flavor-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px var(--shadow);}
-  .flavor-stat-title{font-size:.78rem;font-weight:700;color:var(--brown);margin-bottom:8px;}
-  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .bar-label{font-size:.73rem;color:var(--brown-lt);width:70px;flex-shrink:0;}
-  .bar-track{flex:1;height:9px;background:var(--cream-dk);border-radius:5px;overflow:hidden;}
-  .bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--amber) 0%,var(--amber-lt) 100%);transition:width .4s ease;}
-  .bar-count{font-size:.73rem;font-weight:700;color:var(--amber-dk);min-width:26px;text-align:right;}
+
+  /* ── 日期出貨統計表 ── */
+  .date-section{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    margin-bottom:14px;box-shadow:0 1px 4px var(--shadow);overflow:hidden;
+  }
+  .date-section-header{
+    background:linear-gradient(135deg,var(--amber-dk),var(--amber));
+    color:white;padding:8px 14px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .date-section-header .dh-date{font-size:.88rem;font-weight:700;font-family:'Noto Serif TC',serif;}
+  .date-section-header .dh-count{font-size:.75rem;opacity:.85;}
+  .date-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+  .date-table th{
+    background:var(--cream-dk);color:var(--brown-lt);font-weight:700;
+    padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);
+    font-size:.72rem;letter-spacing:.04em;
+  }
+  .date-table td{padding:7px 10px;border-bottom:1px solid var(--cream-dk);vertical-align:top;color:var(--brown-lt);}
+  .date-table tr:last-of-type td{border-bottom:none;}
+  .date-table tr:hover td{background:rgba(184,115,42,.04);}
+  .date-table .td-name{font-weight:700;color:var(--brown);}
+  .date-table .td-flavor{color:var(--muted);}
+  .date-subtotal{
+    background:var(--cream-dk);padding:8px 14px;
+    border-top:2px solid var(--border);
+    font-size:.76rem;color:var(--amber-dk);font-weight:700;
+  }
+  .date-subtotal-label{display:inline;margin-right:6px;color:var(--brown-lt);}
+  .flavor-tag{
+    display:inline-block;background:rgba(184,115,42,.15);color:var(--amber-dk);
+    border:1px solid rgba(184,115,42,.35);
+    border-radius:20px;padding:2px 8px;font-size:.72rem;font-weight:700;
+    margin:2px 2px;
+  }
+  .box-tag{
+    display:inline-block;background:rgba(30,80,100,.1);color:#1a5068;
+    border:1px solid rgba(30,80,100,.3);
+    border-radius:20px;padding:2px 8px;font-size:.72rem;font-weight:700;
+    margin:2px 2px;
+  }
 
   /* ── 頂部進度條 ── */
   .top-bar{
@@ -246,22 +302,42 @@
       <button class="spec-tab" onclick="selectSpec('8')" id="stab-8">🌕 8入<br><small>$580</small></button>
       <button class="spec-tab" onclick="selectSpec('14')" id="stab-14">🍍 鳳梨酥14入<br><small>$600</small></button>
     </div>
+
+    <!-- 月餅口味（6入/8入） -->
     <div id="flavorSection">
-      <div class="picker-label">選擇口味（1種整盒同味，2種各半）</div>
-      <div class="flavor-grid" id="flavorGrid"></div>
-      <div class="flavor-note" id="flavorNote">請選口味</div>
+      <div class="picker-label">選擇口味 & 數量</div>
+
+      <!-- 容量條 -->
+      <div class="capacity-bar-wrap" id="capacityBarWrap">
+        <div class="capacity-header">
+          <span class="capacity-label" id="capacityLabel">容量</span>
+          <span class="capacity-count" id="capacityCount">0 / 6 格</span>
+        </div>
+        <div class="capacity-track">
+          <div class="capacity-fill ok" id="capacityFill" style="width:0%"></div>
+        </div>
+        <div class="capacity-warning" id="capacityWarning" style="display:none">
+          ⚠️ 超出容量，仍可儲存（鳳梨酥 2顆 = 1格）
+        </div>
+      </div>
+
+      <div class="fq-grid" id="fqGrid"></div>
+
       <div class="mix-option" id="mixOption" onclick="toggleMix()">
-        <input type="radio" id="mixRadio" name="flavorMode">
+        <input type="checkbox" id="mixChk">
         <div>
-          <div style="font-weight:700;color:var(--brown)">🎁 綜合搭配</div>
-          <div style="font-size:.7rem;color:var(--muted)">由我們幫你搭配口味</div>
+          <div style="font-weight:700;color:var(--brown)">🎁 剩餘由店家搭配</div>
+          <div style="font-size:.7rem;color:var(--muted)">指定口味以外，由我們幫你填滿</div>
         </div>
       </div>
     </div>
+
+    <!-- 鳳梨酥14入 -->
     <div id="pineSection" style="display:none">
       <div class="picker-label" style="color:var(--amber-dk)">🍍 金鑽土鳳梨酥 × 14 顆</div>
       <div style="font-size:.78rem;color:var(--muted)">口味固定，無需選擇。</div>
     </div>
+
     <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
       <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;background:var(--cream);overflow:hidden;flex-shrink:0">
         <button onclick="changeQty(-1)" style="width:32px;height:40px;background:none;border:none;font-size:1.1rem;font-weight:700;color:var(--amber);cursor:pointer">−</button>
@@ -333,19 +409,21 @@
 
 <script>
 // ══ 常數 ══
-const FLAVORS = ['蛋黃酥','月娘酥','綠豆碰','抹茶酥','芋頭酥']; // 鳳梨酥只限14入
+const FLAVORS_MOONCAKE = ['蛋黃酥','月娘酥','綠豆碰','抹茶酥','芋頭酥','鳳梨酥'];
+// 鳳梨酥在月餅盒裡計算格數時：2顆 = 1格
+const PINE_RATIO = 0.5;
 
 // ══ 全域狀態 ══
-let orders = [];          // 從 Sheet 載入
+let orders = [];
 let cart = [];
 let currentSpec = '6';
-let selectedFlavors = [];
+let flavorQtys = {};  // { '蛋黃酥': 0, '月娘酥': 0, ... }
 let isMix = false;
 let currentTab = 'orders';
 let isSyncing = false;
 
 // ══ Apps Script URL ══
-function getUrl(){ return 'https://script.google.com/macros/s/AKfycbyAXDZCOZOXXwkZPkz-UtpD0EtOfiHinmvW-0sMMKKQCsLFdo9Jtb7v-QP30RSeu3VxKA/exec'; }
+function getUrl(){ return 'https://script.google.com/macros/s/AKfycbxPLlS9zkpfNzL8Xhy79TUOQPiDUaRLKfFQM3ZajSk10Koz9aomCRSy5HxCmTyoCMuGHQ/exec'; }
 function saveScriptUrl(){
   const u = document.getElementById('scriptUrl').value.trim();
   if(!u){ alert('請輸入 Apps Script 網址'); return; }
@@ -354,13 +432,31 @@ function saveScriptUrl(){
   syncOrders();
 }
 function renderSetupCard(){
-  const url = getUrl();
   const card = document.getElementById('setupCard');
   card.innerHTML = `<strong>✅ 已連接 Google 試算表</strong>`;
 }
 function resetUrl(){
   localStorage.removeItem('mc_scriptUrl');
   renderSetupCard();
+}
+
+// ══ 從 Sheet 讀回時的格式修復 ══
+// Google Sheets 有時把陣列/物件存成 JSON 字串，讀回來要重新解析
+function parseOrder(o){
+  // items 可能是字串
+  if(typeof o.items === 'string'){
+    try{ o.items = JSON.parse(o.items); } catch(e){ o.items = []; }
+  }
+  if(!Array.isArray(o.items)) o.items = [];
+  o.items = o.items.map(it => {
+    // flavors 可能是字串
+    if(typeof it.flavors === 'string'){
+      try{ it.flavors = JSON.parse(it.flavors); } catch(e){ it.flavors = []; }
+    }
+    if(!Array.isArray(it.flavors)) it.flavors = undefined;
+    return it;
+  });
+  return o;
 }
 
 // ══ 同步訂單（從 Sheet 讀） ══
@@ -373,7 +469,6 @@ async function syncOrders(){
   const btn = document.getElementById('syncBtn');
   btn.classList.add('loading'); btn.textContent = '⏳ 同步中…';
 
-  // 8秒後自動關 overlay，讓使用者繼續操作
   const overlayTimer = setTimeout(()=>{
     setTopBar(0);
     showToast('⚠️ 同步較慢，可繼續使用，稍後再按同步', true);
@@ -386,7 +481,7 @@ async function syncOrders(){
     clearTimeout(abortTimer);
     const data = await res.json();
     if(data.success){
-      orders = data.orders || [];
+      orders = (data.orders || []).map(parseOrder);
       renderCurrentTab();
       setTopBar(100);
       showToast(`✅ 已同步 ${orders.length} 筆訂單`);
@@ -427,51 +522,95 @@ function selectSpec(s){
   ['6','8','14'].forEach(k => document.getElementById(`stab-${k}`).classList.toggle('active', k===s));
   document.getElementById('flavorSection').style.display = s==='14' ? 'none' : 'block';
   document.getElementById('pineSection').style.display   = s==='14' ? 'block' : 'none';
-  selectedFlavors = []; isMix = false;
+  resetFlavorQtys();
   document.getElementById('itemQty').value = 1;
   renderFlavorGrid();
 }
 
-// ══ 口味 ══
-function renderFlavorGrid(){
-  const grid = document.getElementById('flavorGrid');
-  grid.innerHTML = FLAVORS.map(f => {
-    const sel = selectedFlavors.includes(f);
-    const dis = !sel && selectedFlavors.length >= 2;
-    return `<button class="flavor-chip ${sel?'selected':''} ${dis&&!isMix?'disabled':''}" onclick="toggleFlavor('${f}')">${f}</button>`;
-  }).join('');
-  const note = document.getElementById('flavorNote');
-  if(isMix) note.textContent = '✅ 已選擇綜合搭配';
-  else if(selectedFlavors.length===1) note.textContent = `✅ 整盒 ${selectedFlavors[0]}（可再選第2種改各半）`;
-  else if(selectedFlavors.length===2) note.textContent = `✅ ${selectedFlavors[0]} ＆ ${selectedFlavors[1]}，各半`;
-  else note.textContent = '請選口味（1種 = 整盒，2種 = 各半）';
-  document.getElementById('mixOption').classList.toggle('selected', isMix);
-  document.getElementById('mixRadio').checked = isMix;
-  document.getElementById('addBtn').disabled = !(currentSpec==='14' || isMix || selectedFlavors.length>=1);
+function resetFlavorQtys(){
+  flavorQtys = {};
+  FLAVORS_MOONCAKE.forEach(f => flavorQtys[f] = 0);
+  isMix = false;
 }
-function toggleFlavor(f){
-  if(isMix){ isMix=false; }
-  if(selectedFlavors.includes(f)) selectedFlavors = selectedFlavors.filter(x=>x!==f);
-  else if(selectedFlavors.length<2) selectedFlavors.push(f);
+
+// ══ 容量計算 ══
+function calcCapacity(){
+  const cap = parseInt(currentSpec); // 6 or 8
+  let slots = 0;
+  FLAVORS_MOONCAKE.forEach(f => {
+    const q = flavorQtys[f] || 0;
+    if(f === '鳳梨酥') slots += q * PINE_RATIO;
+    else slots += q;
+  });
+  return { cap, slots, over: slots > cap };
+}
+
+// ══ 口味格渲染 ══
+function renderFlavorGrid(){
+  const grid = document.getElementById('fqGrid');
+  grid.innerHTML = FLAVORS_MOONCAKE.map(f => {
+    const qty = flavorQtys[f] || 0;
+    const isPine = f === '鳳梨酥';
+    return `<div class="fq-row">
+      <span class="fq-name">${f}${isPine ? '<span class="fq-note">（每2顆=1格）</span>' : ''}</span>
+      <div class="fq-stepper">
+        <button onclick="setFlavorQty('${f}',-1)">−</button>
+        <span class="fq-val" id="fqv-${f.replace(/[^a-zA-Z0-9]/g,'_')}">${qty}</span>
+        <button onclick="setFlavorQty('${f}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const {cap, slots, over} = calcCapacity();
+  const pct = Math.min(slots / cap * 100, 100);
+  const fill = document.getElementById('capacityFill');
+  const countEl = document.getElementById('capacityCount');
+  const warn = document.getElementById('capacityWarning');
+  fill.style.width = pct + '%';
+  fill.className = 'capacity-fill ' + (over ? 'over' : 'ok');
+  countEl.textContent = `${slots} / ${cap} 格`;
+  countEl.className = 'capacity-count ' + (over ? 'over' : 'ok');
+  warn.style.display = over ? 'block' : 'none';
+
+  // 混合勾選狀態
+  document.getElementById('mixOption').classList.toggle('selected', isMix);
+  document.getElementById('mixChk').checked = isMix;
+
+  // 加入按鈕：14入直接開放；月餅至少有一種口味 or 選了綜合
+  const totalQty = FLAVORS_MOONCAKE.reduce((s,f)=>s+(flavorQtys[f]||0),0);
+  document.getElementById('addBtn').disabled = !(currentSpec==='14' || isMix || totalQty > 0);
+}
+
+function setFlavorQty(flavor, delta){
+  flavorQtys[flavor] = Math.max(0, (flavorQtys[flavor]||0) + delta);
   renderFlavorGrid();
 }
-function toggleMix(){ isMix=!isMix; if(isMix) selectedFlavors=[]; renderFlavorGrid(); }
+
+function toggleMix(){
+  isMix = !isMix;
+  renderFlavorGrid();
+}
+
 function changeQty(delta){
   const inp = document.getElementById('itemQty');
   inp.value = Math.max(1, Math.min(99, parseInt(inp.value||1) + delta));
 }
 
 // ══ 購物車 ══
-function cartKey(spec, mix, f1, f2){
-  return `${spec}|${mix?'mix':`${f1||''}+${f2||''}`}`;
-}
 function addToCart(){
   const SPECS = {'6':{name:'月餅 6入',price:450},'8':{name:'月餅 8入',price:580},'14':{name:'鳳梨酥 14入',price:600}};
   const spec = SPECS[currentSpec];
   const qty = Math.max(1, parseInt(document.getElementById('itemQty').value||1));
-  const f1 = selectedFlavors[0]||null;
-  const f2 = selectedFlavors[1]||null;
-  const key = cartKey(currentSpec, isMix, f1, f2);
+
+  // 建立 flavors 陣列（只含 qty > 0）
+  const flavors = FLAVORS_MOONCAKE
+    .filter(f => (flavorQtys[f]||0) > 0)
+    .map(f => ({ name: f, qty: flavorQtys[f] }));
+
+  // 用 key 合併相同商品
+  const flavorKey = flavors.map(f=>`${f.name}:${f.qty}`).join('|') + (isMix?'|mix':'');
+  const key = `${currentSpec}|${flavorKey}`;
+
   const existing = cart.find(i=>i.key===key);
   if(existing){
     existing.qty += qty;
@@ -480,15 +619,18 @@ function addToCart(){
       id: Date.now()+Math.random(),
       key,
       spec: currentSpec, name: spec.name, price: spec.price,
-      mix: isMix, flavor1: f1, flavor2: f2,
+      flavors,
+      mix: isMix,
       qty,
     });
   }
   document.getElementById('itemQty').value = 1;
-  selectedFlavors=[]; isMix=false;
-  renderFlavorGrid(); renderCart();
+  resetFlavorQtys();
+  renderFlavorGrid();
+  renderCart();
   showToast(`✅ 已加入 ${qty} 盒`);
 }
+
 function renderCart(){
   const list = document.getElementById('cartList');
   const empty = document.getElementById('cartEmpty');
@@ -540,19 +682,18 @@ async function submitOrder(){
   };
 
   await pushToSheet(order);
-  orders.unshift(order); // 樂觀更新
+  orders.unshift(order);
   showToast('✅ 訂單已儲存！');
   clearAll();
   renderCurrentTab();
   btn.disabled=false; btn.textContent='✓ 儲存訂單';
-
-  // 背景重新同步確認
   setTimeout(syncOrders, 1500);
 }
 
 // ══ 清除 ══
 function clearAll(){
-  cart=[]; selectedFlavors=[]; isMix=false;
+  cart=[];
+  resetFlavorQtys();
   renderCart(); renderFlavorGrid();
   document.getElementById('buyerName').value='';
   document.getElementById('pickupDate').value=todayStr();
@@ -587,7 +728,15 @@ async function deleteOrder(id){
 
 // ══ 工具 ══
 function flavorStr(it){
-  if(it.spec==='14') return '金鑽土鳳梨酥';
+  if(it.spec==='14') return '🍍 金鑽土鳳梨酥';
+  // 新格式
+  if(it.flavors && it.flavors.length > 0){
+    const parts = it.flavors.map(f => `${f.name} ${f.qty}顆`);
+    let str = parts.join('＋');
+    if(it.mix) str += '＋剩餘綜合搭配';
+    return str;
+  }
+  // 舊格式相容
   if(it.mix) return '🎁 綜合搭配';
   if(it.flavor1 && it.flavor2) return `${it.flavor1} ＆ ${it.flavor2}（各半）`;
   return `${it.flavor1||'?'}（整盒）`;
@@ -646,73 +795,213 @@ function renderOrders(){
   el.innerHTML = list.map(orderCardHTML).join('');
 }
 
+// ══ 共用：計算一組訂單的口味加總（鳳梨酥整盒顆數合併） ══
+function buildFlavorTotals(orderList){
+  const ft = {};
+  orderList.forEach(o => {
+    o.items.forEach(it => {
+      const qty = it.qty || 1;
+      if(it.spec === '14'){
+        // 鳳梨酥整盒，合併到同一個「鳳梨酥」key
+        ft['鳳梨酥'] = (ft['鳳梨酥']||0) + 14*qty;
+      } else if(it.flavors && it.flavors.length > 0){
+        it.flavors.forEach(f => {
+          ft[f.name] = (ft[f.name]||0) + f.qty*qty;
+        });
+        if(it.mix) ft['綜合搭配（剩餘）'] = (ft['綜合搭配（剩餘）']||0) + 1;
+      } else {
+        const perBox = parseInt(it.spec)||6;
+        if(it.mix){
+          ft['綜合搭配'] = (ft['綜合搭配']||0) + perBox*qty;
+        } else if(it.flavor1 && it.flavor2){
+          const half = perBox/2*qty;
+          ft[it.flavor1] = (ft[it.flavor1]||0) + half;
+          ft[it.flavor2] = (ft[it.flavor2]||0) + half;
+        } else if(it.flavor1){
+          ft[it.flavor1] = (ft[it.flavor1]||0) + perBox*qty;
+        }
+      }
+    });
+  });
+  return ft;
+}
+
+// ══ 共用：計算盒數 ══
+function buildBoxCounts(orderList){
+  let box6=0, box8=0, box14=0;
+  orderList.forEach(o => {
+    o.items.forEach(it => {
+      const q = it.qty||1;
+      if(it.spec==='6') box6+=q;
+      if(it.spec==='8') box8+=q;
+      if(it.spec==='14') box14+=q;
+    });
+  });
+  return { box6, box8, box14 };
+}
+
+// ══ 共用：口味加總 + 盒數 雙欄表格 HTML ══
+function flavorTotalsTableHTML(ft, title, bc){
+  const flEntries = Object.entries(ft);
+  if(!flEntries.length && !bc) return '';
+
+  const fmtN = n => Number.isInteger(n) ? n : n.toFixed(1);
+
+  const flRows = flEntries.map(([name, cnt]) =>
+    `<tr>
+      <td style="padding:5px 10px;font-weight:600;color:var(--brown-lt);border-bottom:1px solid var(--cream-dk)">${name}</td>
+      <td style="padding:5px 10px;font-weight:700;color:var(--amber-dk);text-align:right;border-bottom:1px solid var(--cream-dk)">${fmtN(cnt)} 顆</td>
+    </tr>`
+  ).join('');
+
+  let boxHTML = '';
+  if(bc){
+    const bRows = [
+      bc.box6  ? `<tr><td style="padding:5px 10px;color:var(--brown-lt);border-bottom:1px solid var(--cream-dk)">月餅 6入</td><td style="padding:5px 10px;font-weight:700;color:var(--amber-dk);text-align:right;border-bottom:1px solid var(--cream-dk)">${bc.box6} 盒</td></tr>` : '',
+      bc.box8  ? `<tr><td style="padding:5px 10px;color:var(--brown-lt);border-bottom:1px solid var(--cream-dk)">月餅 8入</td><td style="padding:5px 10px;font-weight:700;color:var(--amber-dk);text-align:right;border-bottom:1px solid var(--cream-dk)">${bc.box8} 盒</td></tr>` : '',
+      bc.box14 ? `<tr><td style="padding:5px 10px;color:var(--brown-lt);border-bottom:1px solid var(--cream-dk)">鳳梨酥 14入</td><td style="padding:5px 10px;font-weight:700;color:var(--amber-dk);text-align:right;border-bottom:1px solid var(--cream-dk)">${bc.box14} 盒</td></tr>` : '',
+    ].join('');
+    boxHTML = `<div style="flex:1;min-width:0">
+      <div style="font-size:.72rem;font-weight:700;color:var(--brown-lt);padding:6px 10px;background:var(--cream-dk);letter-spacing:.06em">📦 盒數</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem">${bRows}</table>
+    </div>`;
+  }
+
+  return `<div class="date-section" style="margin-bottom:12px">
+    <div class="date-section-header"><span class="dh-date">${title}</span></div>
+    <div style="display:flex;gap:0;align-items:flex-start">
+      <div style="flex:1;min-width:0;border-right:${bc?'1px solid var(--border)':'none'}">
+        <div style="font-size:.72rem;font-weight:700;color:var(--brown-lt);padding:6px 10px;background:var(--cream-dk);letter-spacing:.06em">🍥 口味顆數</div>
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">${flRows||'<tr><td style="padding:8px 10px;color:var(--muted)">無口味資料</td></tr>'}</table>
+      </div>
+      ${boxHTML}
+    </div>
+  </div>`;
+}
+
 function renderToday(){
   const today = todayStr();
   const list = orders.filter(o=>o.date===today);
   const el = document.getElementById('pane-today');
-  el.innerHTML=`<div style="margin-bottom:10px;font-size:.78rem;color:var(--amber-dk);font-weight:700">📅 ${today} — ${list.length} 筆出貨</div>`;
-  if(!list.length){ el.innerHTML+=`<div class="empty-state"><div class="icon">✅</div><p>今日沒有待出貨</p></div>`; return; }
-  el.innerHTML += list.map(orderCardHTML).join('');
+  if(!list.length){
+    el.innerHTML=`<div style="margin-bottom:10px;font-size:.78rem;color:var(--amber-dk);font-weight:700">📅 ${today} — 0 筆出貨</div><div class="empty-state"><div class="icon">✅</div><p>今日沒有待出貨</p></div>`;
+    return;
+  }
+  const ft = buildFlavorTotals(list);
+  const bc = buildBoxCounts(list);
+  el.innerHTML =
+    `<div style="margin-bottom:10px;font-size:.78rem;color:var(--amber-dk);font-weight:700">📅 ${today} — ${list.length} 筆出貨</div>` +
+    flavorTotalsTableHTML(ft, '今日口味需求加總', bc) +
+    list.map(orderCardHTML).join('');
 }
 
+// ══ 統計（重構：依日期分組表格）══
 function renderStats(){
   const el = document.getElementById('pane-stats');
   if(!orders.length){ el.innerHTML=`<div class="empty-state"><div class="icon">📊</div><p>尚無資料</p></div>`; return; }
 
-  let totalAmt=0,unpaidAmt=0,box6=0,box8=0,box14=0;
-  const fc={};
-  FLAVORS.forEach(f=>fc[f]=0); fc['mix']=0;
-
+  // 總覽統計
+  let totalAmt=0, unpaidAmt=0, box6=0, box8=0, box14=0;
   orders.forEach(o=>{
-    totalAmt+=Number(o.total);
-    if(o.pay!=='paid') unpaidAmt+=Number(o.total);
+    totalAmt += Number(o.total);
+    if(o.pay!=='paid') unpaidAmt += Number(o.total);
     o.items.forEach(it=>{
       const q = it.qty||1;
       if(it.spec==='6') box6+=q;
       if(it.spec==='8') box8+=q;
       if(it.spec==='14') box14+=q;
-      if(it.spec==='6'||it.spec==='8'){
-        const perBox = it.spec==='6' ? 6 : 8;
-        const total = perBox * q;
-        if(it.mix){
-          fc['mix']=(fc['mix']||0)+total;
-        } else if(it.flavor1 && it.flavor2){
-          const half = total/2;
-          fc[it.flavor1]=(fc[it.flavor1]||0)+half;
-          fc[it.flavor2]=(fc[it.flavor2]||0)+half;
-        } else if(it.flavor1){
-          fc[it.flavor1]=(fc[it.flavor1]||0)+total;
-        }
-      }
     });
   });
 
-  const maxF = Math.max(...Object.values(fc),1);
-  let html=`<div class="stat-grid">
+  // 全部訂單口味加總 + 盒數
+  const allFt = buildFlavorTotals(orders);
+  const allBc = { box6, box8, box14 };
+
+  let html = `<div class="stat-grid">
     <div class="stat-box"><div class="stat-label">總訂單數</div><div class="stat-value">${orders.length}</div><div class="stat-sub">筆</div></div>
     <div class="stat-box"><div class="stat-label">總金額</div><div class="stat-value">$${(totalAmt/1000).toFixed(1)}k</div><div class="stat-sub" style="color:var(--red)">未收 $${unpaidAmt.toLocaleString()}</div></div>
-    <div class="stat-box"><div class="stat-label">月餅盒數</div><div class="stat-value">${box6+box8}</div><div class="stat-sub">6入×${box6}／8入×${box8}</div></div>
-    <div class="stat-box"><div class="stat-label">鳳梨酥盒數</div><div class="stat-value">${box14}</div><div class="stat-sub">已出 ${orders.filter(o=>o.shipped).length} 筆</div></div>
-  </div>`;
+    <div class="stat-box"><div class="stat-label">總盒數</div><div class="stat-value">${box6+box8+box14}</div><div class="stat-sub">盒</div></div>
+    <div class="stat-box"><div class="stat-label">已出貨</div><div class="stat-value">${orders.filter(o=>o.shipped).length}</div><div class="stat-sub">共 ${orders.length} 筆</div></div>
+  </div>` +
+  flavorTotalsTableHTML(allFt, '所有訂單口味總計', allBc);
 
-  html+=`<div class="flavor-stat"><div class="flavor-stat-title">🍥 月餅口味需求（顆）</div>`;
-  FLAVORS.forEach(f=>{
-    const cnt=fc[f]||0;
-    html+=`<div class="bar-row"><span class="bar-label">${f}</span><div class="bar-track"><div class="bar-fill" style="width:${cnt/maxF*100}%"></div></div><span class="bar-count">${cnt} 顆</span></div>`;
+  // 依日期分組
+  const byDate = {};
+  orders.forEach(o => {
+    if(!byDate[o.date]) byDate[o.date] = [];
+    byDate[o.date].push(o);
   });
-  if(fc['mix']>0) html+=`<div class="bar-row"><span class="bar-label">🎁 綜合搭配</span><div class="bar-track"><div class="bar-fill" style="width:${fc['mix']/maxF*100}%;opacity:.5"></div></div><span class="bar-count">${fc['mix']} 顆</span></div>`;
-  html+=`</div>`;
 
-  const byDate={};
-  orders.forEach(o=>{byDate[o.date]=(byDate[o.date]||0)+1;});
-  const maxD=Math.max(...Object.values(byDate),1);
-  html+=`<div class="flavor-stat"><div class="flavor-stat-title">📅 各日出貨筆數</div>`;
-  Object.keys(byDate).sort().forEach(d=>{
-    const cnt=byDate[d];
-    html+=`<div class="bar-row"><span class="bar-label" style="width:90px">${d}</span><div class="bar-track"><div class="bar-fill" style="width:${cnt/maxD*100}%"></div></div><span class="bar-count">${cnt}</span></div>`;
+  const sortedDates = Object.keys(byDate).sort();
+
+  sortedDates.forEach(date => {
+    const dateOrders = byDate[date];
+    const orderCount = dateOrders.length;
+
+    // 計算此日期口味小計 + 盒數（共用函式）
+    const flavorTotals = buildFlavorTotals(dateOrders);
+    const dateBc = buildBoxCounts(dateOrders);
+
+    // 建表格列
+    let rows = '';
+    dateOrders.forEach(o => {
+      o.items.forEach(it => {
+        const qty = it.qty || 1;
+        let flStr = '';
+        if(it.spec === '14'){
+          flStr = '金鑽土鳳梨酥';
+        } else if(it.flavors && it.flavors.length > 0){
+          flStr = it.flavors.map(f => `${f.name} ${f.qty * qty}顆`).join('＋');
+          if(it.mix) flStr += '＋剩餘綜合';
+        } else {
+          const perBox = parseInt(it.spec)||6;
+          if(it.mix) flStr = '綜合搭配';
+          else if(it.flavor1 && it.flavor2) flStr = `${it.flavor1} ${perBox/2}顆＋${it.flavor2} ${perBox/2}顆`;
+          else if(it.flavor1) flStr = `${it.flavor1} ${perBox}顆`;
+        }
+
+        rows += `<tr>
+          <td class="td-name">${o.name}</td>
+          <td>${it.name} ×${qty}</td>
+          <td class="td-flavor">${flStr}${it.mix && it.spec!=='14' ? '<br><span style="color:var(--orange);font-size:.68rem">＋剩餘綜合搭配</span>' : ''}</td>
+          <td style="text-align:right;font-weight:700;color:var(--amber-dk);white-space:nowrap">$${(it.price*qty).toLocaleString()}</td>
+        </tr>`;
+      });
+    });
+
+    // 小計 tags
+    const subtotalTags = Object.entries(flavorTotals)
+      .map(([name, cnt]) => `<span class="flavor-tag">${name} ${Number.isInteger(cnt)?cnt:cnt.toFixed(1)}顆</span>`)
+      .join('') +
+      [dateBc.box6?`<span class="box-tag">📦 6入 ${dateBc.box6}盒</span>`:'',
+       dateBc.box8?`<span class="box-tag">📦 8入 ${dateBc.box8}盒</span>`:'',
+       dateBc.box14?`<span class="box-tag">📦 鳳梨酥 ${dateBc.box14}盒</span>`:''].join('');
+
+    const dateTotal = dateOrders.reduce((s,o)=>s+Number(o.total),0);
+
+    html += `<div class="date-section">
+      <div class="date-section-header">
+        <span class="dh-date">📅 ${date} 出貨</span>
+        <span class="dh-count">${orderCount} 筆｜合計 $${dateTotal.toLocaleString()}</span>
+      </div>
+      <table class="date-table">
+        <thead>
+          <tr>
+            <th>訂購人</th>
+            <th>商品</th>
+            <th>口味明細</th>
+            <th style="text-align:right">金額</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="date-subtotal">
+        <span class="date-subtotal-label">📦 口味小計：</span>${subtotalTags || '<span style="color:var(--muted)">無口味資料</span>'}
+      </div>
+    </div>`;
   });
-  html+=`</div>`;
-  el.innerHTML=html;
+
+  el.innerHTML = html;
 }
 
 // ══ 頂部進度條 ══
@@ -734,10 +1023,10 @@ function showToast(msg, isErr=false){
 // ══ Init ══
 document.getElementById('headerDate').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
 document.getElementById('pickupDate').value=todayStr();
+resetFlavorQtys();
 renderSetupCard();
 renderFlavorGrid();
 
-// 有 URL 就自動同步，否則隱藏 overlay
 if(getUrl()){ syncOrders(); }
 else { setTopBar(0); }
 </script>
