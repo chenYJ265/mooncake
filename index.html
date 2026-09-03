@@ -105,7 +105,7 @@
   .capacity-fill{height:100%;border-radius:5px;transition:width .3s ease,background .3s;}
   .capacity-fill.ok{background:linear-gradient(90deg,var(--amber),var(--amber-lt));}
   .capacity-fill.over{background:var(--red);}
-  .capacity-warning{font-size:.7rem;color:var(--red);margin-top:3px;font-weight:600;}
+  .capacity-warning{font-size:.7rem;color:var(--green);margin-top:3px;font-weight:600;}
 
   .mix-option{
     margin-top:4px;padding:8px 12px;border:1.5px dashed var(--border);border-radius:8px;
@@ -563,7 +563,7 @@ function renderFlavorGrid(){
   fill.className = 'capacity-fill ' + (over ? 'over' : 'ok');
   countEl.textContent = `${slots} / ${cap} 格`;
   countEl.className = 'capacity-count ' + (over ? 'over' : 'ok');
-  warn.style.display = over ? 'block' : 'none';
+  warn.style.display = slots >= cap ? 'block' : 'none';
 
   // 混合勾選狀態
   document.getElementById('mixOption').classList.toggle('selected', isMix);
@@ -734,7 +734,10 @@ function flavorStr(it){
   if(it.flavor1 && it.flavor2) return `${it.flavor1} ＆ ${it.flavor2}（各半）`;
   return `${it.flavor1||'?'}（整盒）`;
 }
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 // ══ 訂單卡 HTML ══
 function orderCardHTML(o){
