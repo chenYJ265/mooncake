@@ -317,7 +317,7 @@
           <div class="capacity-fill ok" id="capacityFill" style="width:0%"></div>
         </div>
         <div class="capacity-warning" id="capacityWarning" style="display:none">
-          ⚠️ 超出容量，仍可儲存（鳳梨酥 2顆 = 1格）
+          ✅ 已達容量上限
         </div>
       </div>
 
@@ -410,8 +410,6 @@
 <script>
 // ══ 常數 ══
 const FLAVORS_MOONCAKE = ['蛋黃酥','月娘酥','綠豆碰','抹茶酥','芋頭酥','鳳梨酥'];
-// 鳳梨酥在月餅盒裡計算格數時：2顆 = 1格
-const PINE_RATIO = 0.5;
 
 // ══ 全域狀態 ══
 let orders = [];
@@ -536,12 +534,7 @@ function resetFlavorQtys(){
 // ══ 容量計算 ══
 function calcCapacity(){
   const cap = parseInt(currentSpec); // 6 or 8
-  let slots = 0;
-  FLAVORS_MOONCAKE.forEach(f => {
-    const q = flavorQtys[f] || 0;
-    if(f === '鳳梨酥') slots += q * PINE_RATIO;
-    else slots += q;
-  });
+  const slots = FLAVORS_MOONCAKE.reduce((s,f) => s + (flavorQtys[f]||0), 0);
   return { cap, slots, over: slots > cap };
 }
 
@@ -550,13 +543,13 @@ function renderFlavorGrid(){
   const grid = document.getElementById('fqGrid');
   grid.innerHTML = FLAVORS_MOONCAKE.map(f => {
     const qty = flavorQtys[f] || 0;
-    const isPine = f === '鳳梨酥';
+    const atCap = calcCapacity().slots >= parseInt(currentSpec);
     return `<div class="fq-row">
-      <span class="fq-name">${f}${isPine ? '<span class="fq-note">（每2顆=1格）</span>' : ''}</span>
+      <span class="fq-name">${f}</span>
       <div class="fq-stepper">
-        <button onclick="setFlavorQty('${f}',-1)">−</button>
+        <button onclick="setFlavorQty('${f}',-1)" ${qty===0?'disabled':''} style="${qty===0?'opacity:.3;cursor:not-allowed':''}">−</button>
         <span class="fq-val" id="fqv-${f.replace(/[^a-zA-Z0-9]/g,'_')}">${qty}</span>
-        <button onclick="setFlavorQty('${f}',1)">+</button>
+        <button onclick="setFlavorQty('${f}',1)" ${atCap?'disabled':''} style="${atCap?'opacity:.3;cursor:not-allowed':''}">+</button>
       </div>
     </div>`;
   }).join('');
